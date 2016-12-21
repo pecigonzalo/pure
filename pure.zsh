@@ -438,6 +438,12 @@ prompt_pure_preprompt_render() {
 	preprompt+="%F{cyan}${prompt_pure_git_arrows}%f"
 	# username and machine if applicable
 	preprompt+=$prompt_pure_username
+  # ruby stuff
+  preprompt+="$(spaceship_ruby_version)"
+  # venv stuff
+  preprompt+="$(spaceship_venv_status)"
+  # nvm stuff
+  preprompt+="$(spaceship_nvm_status)"
 	# execution time
 	preprompt+="%F{yellow}${prompt_pure_cmd_exec_time}%f"
 
@@ -658,7 +664,7 @@ prompt_pure_setup() {
 	[[ $UID -eq 0 ]] && prompt_pure_username=' %F{white}%n%f%F{242}@%m%f'
 
 	# prompt turns red if the previous command didn't exit with 0
-	PROMPT="%(?.%F{magenta}.%F{red})'$(spaceship_ruby_version)'${PURE_PROMPT_SYMBOL:-❯}%f "
+	PROMPT="%(?.%F{magenta}.%F{red})${PURE_PROMPT_SYMBOL:-❯}%f "
 }
 
 prompt_pure_setup "$@"
