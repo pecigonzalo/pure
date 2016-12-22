@@ -29,8 +29,6 @@ SPACESHIP_GIT_UNCOMMITTED="${SPACESHIP_GIT_UNCOMMITTED:-+}"
 SPACESHIP_GIT_UNSTAGED="${SPACESHIP_GIT_UNSTAGED:-!}"
 SPACESHIP_GIT_UNTRACKED="${SPACESHIP_GIT_UNTRACKED:-?}"
 SPACESHIP_GIT_STASHED="${SPACESHIP_GIT_STASHED:-$}"
-SPACESHIP_GIT_UNPULLED="${SPACESHIP_GIT_UNPULLED:-⇣}"
-SPACESHIP_GIT_UNPUSHED="${SPACESHIP_GIT_UNPUSHED:-⇡}"
 
 # NVM
 SPACESHIP_NVM_SHOW="${SPACESHIP_NVM_SHOW:-true}"
@@ -47,42 +45,6 @@ SPACESHIP_VENV_SHOW="${SPACESHIP_VENV_SHOW:-true}"
 SPACESHIP_VI_MODE_SHOW="${SPACESHIP_VI_MODE_SHOW:-true}"
 SPACESHIP_VI_MODE_INSERT="${SPACESHIP_VI_MODE_INSERT:-[I]}"
 SPACESHIP_VI_MODE_NORMAL="${SPACESHIP_VI_MODE_NORMAL:-[N]}"
-
-# Username.
-# If user is root, then pain it in red. Otherwise, just print in yellow.
-spaceship_user() {
-  if [[ $USER == 'root' ]]; then
-    echo -n "%{$fg_bold[red]%}"
-  else
-    echo -n "%{$fg_bold[yellow]%}"
-  fi
-  echo -n "%n"
-  echo -n "%{$reset_color%}"
-}
-
-# Username and SSH host
-# If there is an ssh connections, then show user and current machine.
-# If user is not $USER, then show username.
-spaceship_host() {
-  if [[ -n $SSH_CONNECTION ]]; then
-    echo -n "$(spaceship_user)"
-
-    # Do not show directory prefix if prefixes are disabled
-    [[ $SPACESHIP_PREFIX_SHOW == true ]] && echo -n "%B${SPACESHIP_PREFIX_DIR}%b" || echo -n ' '
-    # Display machine name
-    echo -n "%{$fg_bold[green]%}%m%{$reset_color%}"
-    # Do not show host prefix if prefixes are disabled
-    [[ $SPACESHIP_PREFIX_SHOW == true ]] && echo -n "%B${SPACESHIP_PREFIX_HOST}%b" || echo -n ' '
-
-  elif [[ $LOGNAME != $USER ]] || [[ $USER == 'root' ]]; then
-    echo -n "$(spaceship_user)"
-
-    # Do not show host prefix if prefixes are disabled
-    [[ $SPACESHIP_PREFIX_SHOW == true ]] && echo -n "%B${SPACESHIP_PREFIX_HOST}%b" || echo -n ' '
-
-    echo -n "%{$reset_color%}"
-  fi
-}
 
 # Current directory.
 # Return only three last items of path
@@ -124,27 +86,6 @@ spaceship_git_stashed() {
   fi
 }
 
-# Unpushed and unpulled commits.
-# Get unpushed and unpulled commits from remote and draw arrows.
-spaceship_git_unpushed_unpulled() {
-  # check if there is an upstream configured for this branch
-  command git rev-parse --abbrev-ref @'{u}' &>/dev/null || return
-
-  local count
-  count="$(command git rev-list --left-right --count HEAD...@'{u}' 2>/dev/null)"
-  # exit if the command failed
-  (( !$? )) || return
-
-  # counters are tab-separated, split on tab and store as array
-  count=(${(ps:\t:)count})
-  local arrows left=${count[1]} right=${count[2]}
-
-  (( ${right:-0} > 0 )) && arrows+="${SPACESHIP_GIT_UNPULLED}"
-  (( ${left:-0} > 0 )) && arrows+="${SPACESHIP_GIT_UNPUSHED}"
-
-  [ -n $arrows ] && echo -n "${arrows}"
-}
-
 # Git status.
 # Collect indicators, git branch and pring string.
 spaceship_git_status() {
@@ -169,12 +110,6 @@ spaceship_git_status() {
 
     [ -n "${indicators}" ] && indicators=" [${indicators}]";
 
-    # Do not show git prefix if prefixes are disabled
-    [[ $SPACESHIP_PREFIX_SHOW == true ]] && echo -n "%B${SPACESHIP_PREFIX_GIT}%b" || echo -n ' '
-
-    echo -n "%{$fg_bold[magenta]%}"
-    echo -n "$(git_current_branch)"
-    echo -n "%{$reset_color%}"
     echo -n "%{$fg_bold[red]%}"
     echo -n "$indicators"
     echo -n "%{$reset_color%}"
@@ -267,19 +202,6 @@ spaceship_vi_mode() {
     echo -n "%{$reset_color%} "
   fi
 }
-
-# Compose PROMPT
-PROMPT=''
-[[ $SPACESHIP_PROMPT_ADD_NEWLINE == true ]] && PROMPT="$PROMPT$NEWLINE"
-PROMPT="$PROMPT"'$(spaceship_build_prompt) '
-[[ $SPACESHIP_PROMPT_SEPARATE_LINE == true ]] && PROMPT="$PROMPT$NEWLINE"
-[[ $SPACESHIP_VI_MODE_SHOW == true ]] && PROMPT="$PROMPT"'$(spaceship_vi_mode)'
-PROMPT="$PROMPT"'$(spaceship_return_status) '
-
-# Set PS2 - continuation interactive prompt
-PS2="%{$fg_bold[yellow]%}"
-PS2+="%{$SPACESHIP_PROMPT_SYMBOL%} "
-PS2+="%{$reset_color%}"
 
 # # LSCOLORS
 # export LSCOLORS="Gxfxcxdxbxegedabagacab"
@@ -548,7 +470,7 @@ prompt_pure_async_git_dirty() {
 		test -z "$(command git status --porcelain --ignore-submodules -unormal)"
 	fi
 
-	(( $? )) && echo "*"
+	(( $? )) && echo "$(spaceship_git_status)"
 }
 
 prompt_pure_async_git_fetch() {
