@@ -108,11 +108,9 @@ spaceship_git_status() {
     indicators+="$(spaceship_git_stashed)"
     indicators+="$(spaceship_git_unpushed_unpulled)"
 
-    [ -n "${indicators}" ] && indicators=" [${indicators}]";
+    [ -n "${indicators}" ] && indicators="${indicators}";
 
-    echo -n "%{$fg_bold[red]%}"
     echo -n "$indicators"
-    echo -n "%{$reset_color%}"
   fi
 }
 
@@ -297,7 +295,7 @@ prompt_pure_check_git_arrows() {
 	(( ${right:-0} > 0 )) && arrows+="${PURE_GIT_DOWN_ARROW:-⇣}"
 	(( ${left:-0} > 0 )) && arrows+="${PURE_GIT_UP_ARROW:-⇡}"
 
-	[[ -n $arrows ]] && prompt_pure_git_arrows=" ${arrows}"
+	[[ -n $arrows ]] && prompt_pure_git_arrows="$fg_bold[red]${arrows}"
 }
 
 prompt_pure_set_title() {
@@ -355,9 +353,9 @@ prompt_pure_preprompt_render() {
 	# construct preprompt, beginning with path
 	local preprompt="%F{blue}%~%f"
 	# git info
-	preprompt+="%F{$git_color}${vcs_info_msg_0_}${prompt_pure_git_dirty}%f"
-	# git pull/push arrows
-	preprompt+="%F{cyan}${prompt_pure_git_arrows}%f"
+  gitinfo="${prompt_pure_git_dirty}${prompt_pure_git_arrows}"
+  [ -n "${gitinfo}" ] && gitinfo=" $fg_bold[red][${gitinfo}]";
+	preprompt+="%F{$git_color}${vcs_info_msg_0_}${gitinfo}%f"
 	# username and machine if applicable
 	preprompt+=$prompt_pure_username
   # ruby stuff
